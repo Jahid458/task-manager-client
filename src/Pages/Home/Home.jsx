@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { BiEdit } from "react-icons/bi";
 import { FiEdit } from "react-icons/fi";
 import { MdDelete } from "react-icons/md";
+import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const Home = () => {
   const { register, handleSubmit, reset } = useForm();
@@ -30,6 +32,9 @@ const Home = () => {
     console.log(taskList);
     axiosPublic.post('/tasks', taskList)
     .then(res =>{
+        if(res.data.insertedId){
+            toast.success('toast added Successsfully')
+        }
         console.log(res);
         refetch();
 
@@ -44,6 +49,32 @@ const Home = () => {
     },
   });
   console.log(tasks);
+
+const handleDelete = (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:5000/deleteTasks/${id}`, {
+          method: "DELETE",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            
+            if (data.deletedCount) {
+              Swal.fire("Deleted!", "Your task has been deleted.", "success");
+            }
+            refetch()
+          });
+      }
+    });
+  };
 
   return (
     <div>
@@ -75,16 +106,12 @@ const Home = () => {
                   <button  className="text-blue-500 hover:text-blue-700 mr-2">
                     <FiEdit size={20} />
                   </button>
-                  {/* onClick={() => handleDelete(task._id)} */}
-                  <button  className="text-red-500 hover:text-red-700 ">
+                
+                  <button onClick={() => handleDelete(data._id)}   className="text-red-500 hover:text-red-700 ">
                     <MdDelete size={20} />
                   </button>
                 </div>
             </div>
-            
-           
-           
-            
           )
         )}
       </div>
