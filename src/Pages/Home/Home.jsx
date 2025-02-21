@@ -75,7 +75,7 @@ const Home = () => {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:5000/deleteTasks/${id}`, {
+        fetch(`https://task-manager-server-gules.vercel.app/deleteTasks/${id}`, {
           method: "DELETE",
         })
           .then((res) => res.json())
