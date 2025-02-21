@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import Navbar from "../../components/Navbar/Navbar";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import { IoIosAddCircleOutline } from "react-icons/io";
@@ -12,29 +11,34 @@ import Swal from "sweetalert2";
 
 const Home = () => {
   const [task, setTask] = useState(null);
-  const { register, handleSubmit, reset } = useForm();
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "To-Do",
+    description: "",
+  });
   const axiosPublic = useAxiosPublic();
   const { user } = useContext(authContext);
 
   useEffect(() => {
     if (task) {
-      reset({
+      setFormData({
         title: task.title,
         category: task.category,
         description: task.description,
       });
     }
-  }, [task, reset]);
+  }, [task]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (e) => {
+    e.preventDefault();
     const date = new Date();
     const taskDate = date.toLocaleDateString("en-GB").split("/").join("-");
 
     const taskList = {
-      title: data.title,
-      description: data.description,
+      title: formData.title,
+      description: formData.description,
       taskDate: taskDate,
-      category: data.category,
+      category: formData.category,
       email: user?.email,
     };
 
@@ -86,11 +90,13 @@ const Home = () => {
     document.getElementById("my_modal_2").showModal();
   };
 
-  const handleTaskUpdate = async (data) => {
+  const handleTaskUpdate = async (e) => {
+    e.preventDefault();
+
     const taskList = {
-      title: data.title,
-      description: data.description,
-      category: data.category,
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
     };
 
     await axiosPublic.put(`/taskUpdate/${task._id}`, taskList);
@@ -98,6 +104,14 @@ const Home = () => {
     refetch();
 
     document.getElementById("my_modal_2").close();
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
   return (
@@ -154,21 +168,30 @@ const Home = () => {
         <dialog id="my_modal_1" className="modal">
           <div className="modal-box">
             <h3 className="font-bold text-lg">Add Task</h3>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4">
               <input
                 type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
                 placeholder="Task Title"
-                {...register("title", { required: true, maxLength: 50 })}
                 className="input input-bordered w-full"
               />
-              <select {...register("category")} className="select select-bordered w-full">
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="select select-bordered w-full"
+              >
                 <option value="To-Do">To-Do</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Done">Done</option>
               </select>
               <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
                 placeholder="Task Description"
-                {...register("description", { maxLength: 200 })}
                 className="textarea textarea-bordered w-full"
               ></textarea>
               <div className="modal-action">
@@ -187,19 +210,37 @@ const Home = () => {
         <dialog id="my_modal_2" className="modal">
           <div className="modal-box">
             <h3 className="font-bold text-lg">Update Task</h3>
-            <form onSubmit={handleSubmit(handleTaskUpdate)} className="space-y-4">
-              <input type="text" {...register("title")} className="input input-bordered w-full" defaultValue={task?.title} />
-              <select {...register("category")} className="select select-bordered w-full" defaultValue={task?.category}>
+            <form onSubmit={handleTaskUpdate} className="space-y-4">
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                className="input input-bordered w-full"
+              />
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="select select-bordered w-full"
+              >
                 <option value="To-Do">To-Do</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Done">Done</option>
               </select>
-              <textarea {...register("description")} className="textarea textarea-bordered w-full" defaultValue={task?.description}></textarea>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                className="textarea textarea-bordered w-full"
+              ></textarea>
               <div className="modal-action">
                 <button type="button" className="btn" onClick={() => document.getElementById("my_modal_2").close()}>
                   Close
                 </button>
-                <button type="submit" className="btn btn-primary">Update Task</button>
+                <button type="submit" className="btn btn-primary">
+                  Update Task
+                </button>
               </div>
             </form>
           </div>
